@@ -1,0 +1,7 @@
+*~
+.vagrant
+*.swp
+*kate-swp
+*.log
+*.orig
+pkg

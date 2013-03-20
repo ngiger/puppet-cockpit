@@ -1,0 +1,10 @@
+name         'ngiger-cockpit'
+version      '0.1.0'
+summary      'Puppet module for Elexis cockpit '
+description  'Puppet module for Elexis cockpit. Wartungsarbeiten für Anwender von Elexis.
+s.a https://github.com/elexis/elexis-cockpit/. Only tested under Debian.'
+project_page 'https://github.com/ngiger/puppet-cockpit'
+license      'GNU General Public License v3 or Later (GPLv3+)'
+author       'Niklaus Giger <niklaus.giger@member.fsf.org>'
+dependency   'puppet/rvm',  '>= 1.0'
+dependency   'puppetlabs/vcsrepo',  '>= 0.0.4'

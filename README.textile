@@ -1,0 +1,35 @@
+h1. cockpit module for Puppet
+
+This module provides classes to manage the "Elexis cockpit":https://github.com/elexis/elexis-cockpit/ app.
+
+Installation
+Enable plugin synchronization for custom types.  In your puppet.conf (usually in /etc/puppet)
+on both the Master and Client ensure you have:
+
+bq.    [main]
+       	 pluginsync = true
+
+        
+h2. Examples
+
+* To install the cockpit:
+
+bq.    class { "cockpit": }
+
+This sets ensure => present for the package. If you want to set a different
+value, you can override the cockpit::params::ensure parameter using hiera.
+
+* To remove the cockpit:
+
+bq.   class { "cockpit": ensure => absent }
+
+* see the files under test for more examples
+    
+h2. License
+
+Copyright 2013 by Niklaus Giger niklaus.giger@member.fsf.org
+
+This program is free software; you can redistribute  it and/or modify it under the terms of the GNU General Public License version 3 as published by 
+the Free Software Foundation.
+
+    
