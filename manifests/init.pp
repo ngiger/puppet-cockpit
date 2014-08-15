@@ -39,48 +39,40 @@ class cockpit(
 ) {
 
 
-  include rvm
-  if !defined(User['elexis']) {
-    user { 'elexis': ensure => present }
+  rbenv::install { "root":
+    group => 'root',
+    home  => '/root'
   }
+  
+  if (false) {
+  rbenv::compile{ "forRoor":
+    user => 'root',
+    ruby_version =>'1.9.3-p125',
+    bundler => '1.6.0',
+  }
+  }
+  # if !defined(User['elexis']) { user { 'elexis': ensure => present } }
   if ($ensure != absent ) { 
     $pkg_ensure = present 
  
-    # rvm does not handle absent correctly!
-    rvm_system_ruby {
-      "$rubyVersion":
-        ensure => $pkg_ensure,
-        default_use => false;
-    }
-     
-    rvm_gemset {
-      "$rubyVersion@cockpit":
-        ensure => $pkg_ensure,
-        require => Rvm_system_ruby[ $rubyVersion  ];
-    }
-    
-    rvm_gem {
-      "$rubyVersion@cockpit/bundler":
-        ensure => $pkg_ensure,
-        require => Rvm_gemset["$rubyVersion@cockpit"];
-    }
-      
     exec { 'bundle_trust_cockpit':
-      command => "sudo -iH rvm $rubyVersion do bundle install --gemfile $vcsRoot/Gemfile &> $vcsRoot/install.log",
+      command => "echo bundle install --gemfile $vcsRoot/Gemfile &> $vcsRoot/install.log",
       creates => "$vcsRoot/install.log",
       cwd => "/usr/bin",
-      path => '/usr/local/rvm/bin:/usr/local/bin:/usr/bin:/bin',
-      require => [  Rvm_gem ["$rubyVersion@cockpit/bundler"],
-                    Vcsrepo[$vcsRoot] ],
+      path => '/usr/local/bin:/usr/bin:/bin',
+      require => [ # Rvm_gem ["$rubyVersion@cockpit/bundler"],
+                 #   Vcsrepo[$vcsRoot] 
+                 ],
     }
     exec { 'gen_mockconfig':
-      command => "rvm rvmrc trust $vcsRoot \
+      command => "echo rvm rvmrc trust $vcsRoot \
       && cd $vcsRoot && pwd   \
-      && rake mock_scripts 2>&1| tee mock_scripts.log",
+      && echo rake mock_scripts 2>&1| tee mock_scripts.log",
       creates => "$vcsRoot/mock_scripts.log",
       cwd => "/usr/bin",
-      path => '/usr/local/rvm/bin:/usr/local/bin:/usr/bin:/bin',
-      require =>  [ Rvm_system_ruby["$rubyVersion"], Vcsrepo[$vcsRoot], 
+      path => '/usr/local/bin:/usr/bin:/bin',
+      require =>  [ Rbenv::Install['root'], 
+      # Vcsrepo[$vcsRoot], 
                     Exec['bundle_trust_cockpit'], ],
     }
   } 
@@ -97,13 +89,14 @@ class cockpit(
     mode  => 0754,
   }
   
+  notify{"vcsRoot ist $vcsRoot": }
   vcsrepo {  "$vcsRoot":
       ensure => $pkg_ensure,
-      provider => git,
+      provider => 'git',
       owner => 'elexis',
       group => 'elexis',
       source => "https://github.com/elexis/elexis-cockpit.git",
-      require => [User['elexis'],],
+#      require => [User['elexis'],],
   }  
 }
 
@@ -113,7 +106,6 @@ class cockpit::service(
 ) inherits cockpit
 {
   if ($ensure != absent) {
-    notify{"mit service da $ensure":} 
     service { 'cockpit':
       ensure => running,
       enable => true,
@@ -123,7 +115,6 @@ class cockpit::service(
         Exec[ 'bundle_trust_cockpit', 'gen_mockconfig'] ],
     }
   } else {
-    notify{"ohne service da $ensure":} 
     service { 'cockpit':
       ensure => stopped,
       enable => true,
