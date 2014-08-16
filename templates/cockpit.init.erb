@@ -19,5 +19,5 @@ esac
 if [ -d <%=  @vcsRoot %> ]
 then	
   # redirect stdout and stderr into a log file
-  sudo -iHu elexis <%=  @useMock ? 'COCKPIT_CONFIG=mock_config.yaml' : '' %> <%=  @vcsRoot %>/elexis-cockpit.rb &> /var/log/elexis-cockpit.log &
+  sudo -iHu <%= @runAsUser %> <%=  @useMock ? 'COCKPIT_CONFIG=mock_config.yaml' : '' %> <%=  @vcsRoot %>/elexis-cockpit.rb &> /var/log/elexis-cockpit.log &
 fi
