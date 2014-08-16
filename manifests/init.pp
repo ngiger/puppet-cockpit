@@ -36,39 +36,14 @@ class cockpit(
   $vcsRoot = '/opt/cockpit/checkout',
   $initFile = '/etc/init.d/cockpit',
   $rubyVersion = 'ruby-2.0.0-p0',
-  $runAsUser   = 'elexis',
+  $runAsUser   = 'cockpit',
 ) {
 
   class { "cockpit::setup": ensure => $ensure, install_dir => "/home/$runAsUser"}
-
-  # if !defined(User['elexis']) { user { 'elexis': ensure => present } }
+  group { "$runAsUser":  ensure => present, }
+  user { "$runAsUser":  ensure => present, }
   if ($ensure != absent ) {
     $pkg_ensure = present
-
-    exec { 'bundle_trust_cockpit':
-      command => "echo bundle install --gemfile $vcsRoot/Gemfile &> $vcsRoot/install.log",
-      creates => "$vcsRoot/install.log",
-      cwd => "/usr/bin",
-      path => '/usr/local/bin:/usr/bin:/bin',
-      require => [ Rbenv::Compile['cockpit/2.1.2'],
-                  Vcsrepo[$vcsRoot],
-                  Exec['build-dep ruby-bcrypt'],
-                 ],
-    }
-    exec { 'build-dep ruby-bcrypt':
-      command => "apt-get install build-dep ruby-bcryp uby-redcloth 2>&1| tee build_dep.log",
-      creates => "$vcsRoot/build_dep.log",
-      path => '/usr/local/bin:/usr/bin:/bin',
-    }
-
-    exec { 'gen_mockconfig':
-      command => "bundle exec rake mock_scripts 2>&1| tee mock_scripts.log",
-      creates => "$vcsRoot/mock_scripts.log",
-      cwd => "$vcsRoot",
-      path => '/usr/local/bin:/usr/bin:/bin',
-      require =>  [ Vcsrepo[$vcsRoot],
-                    Exec['bundle_trust_cockpit'], ],
-    }
   }
   else {
     $pkg_ensure = absent
@@ -91,29 +66,5 @@ class cockpit(
       group => $runAsUser,
       source => "https://github.com/elexis/elexis-cockpit.git",
       require => [User[$runAsUser],],
-  }
-}
-
-
-class cockpit::service(
-  $ensure  = true,
-) inherits cockpit
-{
-  if ($ensure != absent) {
-    service { 'cockpit':
-      ensure => running,
-      enable => true,
-      hasstatus => false,
-      hasrestart => false,
-      require =>  [ File["$cockpit::initFile"],
-        Exec[ 'bundle_trust_cockpit', 'gen_mockconfig'] ],
-    }
-  } else {
-    service { 'cockpit':
-      ensure => stopped,
-      enable => true,
-      hasstatus => false,
-      hasrestart => false,
-    }
   }
 }

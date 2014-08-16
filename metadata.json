@@ -9,7 +9,9 @@
   "issues_url": null,
   "description": "Puppet module for Elexis cockpit. Wartungsarbeiten für Anwender von Elexis.\ns.a https://github.com/elexis/elexis-cockpit/. Only tested under Debian.",
   "dependencies": [
-    {"name":"alup/rbenv","version_requirement":">= 1.2"},
-    {"name":"puppetlabs/vcsrepo","version_requirement":">= 1.0.0"}
+    {"name":"jdowning/rbenv","version_requirement":">= 1.3"},
+    {"name":"puppetlabs/vcsrepo","version_requirement":">= 1.0.0"},
+    {"name":"puppetlabs/apt","version_requirement":">= 1.0.0"},
+    {"name":"jbussdieker/daemontools","version_requirement":">= 0.0.3"}
   ]
 }
