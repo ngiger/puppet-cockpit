@@ -1,0 +1,15 @@
+{
+  "name": "ngiger-cockpit",
+  "version": "0.1.0",
+  "author": "Niklaus Giger <niklaus.giger@member.fsf.org>",
+  "summary": "Puppet module for Elexis cockpit ",
+  "license": "GNU General Public License v3 or Later (GPLv3+)",
+  "source": "",
+  "project_page": "https://github.com/ngiger/puppet-cockpit",
+  "issues_url": null,
+  "description": "Puppet module for Elexis cockpit. Wartungsarbeiten für Anwender von Elexis.\ns.a https://github.com/elexis/elexis-cockpit/. Only tested under Debian.",
+  "dependencies": [
+    {"name":"alup/rbenv","version_requirement":">= 1.2"},
+    {"name":"puppetlabs/vcsrepo","version_requirement":">= 1.0.0"}
+  ]
+}
