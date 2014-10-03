@@ -49,7 +49,7 @@ class cockpit::service(
     file{"$vcsRoot/start.sh":
       content => "#!/bin/bash -v
 cd  $vcsRoot
-export PATH=/opt/rbenv/shims:\$PATH
+# export PATH=/opt/rbenv/shims:\$PATH
 echo \$PATH
 ruby -v
 $export_mock
@@ -68,7 +68,7 @@ ruby elexis-cockpit.rb 2>&1
       creates => "$vcsRoot/install.log",
       cwd => "/usr/bin",
       path => '/usr/local/bin:/usr/bin:/bin',
-      require => [ Rbenv::Build['2.1.2'],
+      require => [ # Rbenv::Build['2.1.2'],
                   Vcsrepo[$vcsRoot],
                   Apt::Builddep[$build_deps],
                  ],
@@ -113,7 +113,7 @@ if (false) {
       provider => daemontools,
       hasrestart => false,
       require =>  [ File["$cockpit::initFile", $cockpit_run],
-        Rbenv::Build['2.1.2'],
+        # Rbenv::Build['2.1.2'],
         Exec[ 'bundle_trust_cockpit', 'gen_mockconfig'] ],
     }
 service {$cockpit_name:

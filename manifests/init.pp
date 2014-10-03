@@ -32,13 +32,14 @@
 #
 class cockpit(
   $useMock = true,
-  $ensure  = true,
+  $ensure  = false,
   $vcsRoot = '/opt/cockpit/checkout',
   $initFile = '/etc/init.d/cockpit',
   $rubyVersion = 'ruby-2.0.0-p0',
   $runAsUser   = 'cockpit',
 ) {
 
+	if ($ensure == present) {
   class { "cockpit::setup": ensure => $ensure, install_dir => "/home/$runAsUser"}
   group { "$runAsUser":  ensure => present, }
   user { "$runAsUser":  ensure => present, }
@@ -67,4 +68,5 @@ class cockpit(
       source => "https://github.com/elexis/elexis-cockpit.git",
       require => [User[$runAsUser],],
   }
+	}
 }

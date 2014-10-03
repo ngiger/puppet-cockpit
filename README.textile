@@ -24,12 +24,10 @@ value, you can override the cockpit::params::ensure parameter using hiera.
 bq.   class { "cockpit": ensure => absent }
 
 * see the files under test for more examples
-    
+
 h2. License
 
 Copyright 2013 by Niklaus Giger niklaus.giger@member.fsf.org
 
 This program is free software; you can redistribute  it and/or modify it under the terms of the GNU General Public License version 3 as published by 
 the Free Software Foundation.
-
-    
