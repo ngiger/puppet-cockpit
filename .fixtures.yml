@@ -1,0 +1,16 @@
+# run once rake spec_prep
+# run often (avoiding download) rake spec_standalone
+fixtures:
+  forge_modules:
+      stdlib:
+          repo: puppetlabs/stdlib
+          ref: 4.3.2
+      vcsrepo: puppetlabs/vcsrepo
+      apt: puppetlabs/apt
+      concat: ripienaar/concat
+  repositories:
+    daemontools:
+      repo: https://github.com/jbussdieker/puppet-daemontools
+      ref: master
+  symlinks:
+    cockpit: "#{source_dir}"

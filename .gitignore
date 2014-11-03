@@ -1,8 +1,4 @@
-*~
-.vagrant
-*.swp
-*kate-swp
-*.log
-*.orig
-pkg
-.librarian
+.bundle/
+vendor/
+pkg/
+spec/fixtures/modules
