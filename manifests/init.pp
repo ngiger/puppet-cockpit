@@ -38,35 +38,33 @@ class cockpit(
   $rubyVersion = 'ruby-2.0.0-p0',
   $runAsUser   = 'cockpit',
 ) {
+  if ($ensure) {
+    class { "cockpit::setup": ensure => $ensure, install_dir => "/home/$runAsUser"}
+    if ($ensure != absent ) {
+      user { "$runAsUser":  ensure => present, }
+      $pkg_ensure = present
+    }
+    else {
+      $pkg_ensure = absent
+      notify{"ohne $initFile da $ensure und pkg $pkg_ensure ":}
+      user { "$runAsUser":  ensure => $ensure, }
+    }
 
-	if ($ensure == present) {
-  class { "cockpit::setup": ensure => $ensure, install_dir => "/home/$runAsUser"}
-  group { "$runAsUser":  ensure => present, }
-  user { "$runAsUser":  ensure => present, }
-  if ($ensure != absent ) {
-    $pkg_ensure = present
-  }
-  else {
-    $pkg_ensure = absent
-    notify{"ohne $initFile da $ensure und pkg $pkg_ensure ":}
-  }
-
-  file  { $initFile:
-    content => template('cockpit/cockpit.init.erb'),
-    ensure => $pkg_ensure,
-    owner => 'root',
-    group => 'root',
-    mode  => 0754,
-  }
-
-  notify{"vcsRoot ist $vcsRoot": }
-  vcsrepo {  "$vcsRoot":
+    file  { $initFile:
+      content => template('cockpit/cockpit.init.erb'),
       ensure => $pkg_ensure,
-      provider => 'git',
-      owner => $runAsUser,
-      group => $runAsUser,
-      source => "https://github.com/elexis/elexis-cockpit.git",
-      require => [User[$runAsUser],],
-  }
+      owner => 'root',
+      group => 'root',
+      mode  => 0754,
+    }
+
+    vcsrepo {  "$vcsRoot":
+        ensure => $pkg_ensure,
+        provider => 'git',
+        owner => $runAsUser,
+        group => $runAsUser,
+        source => "https://github.com/elexis/elexis-cockpit.git",
+        require => [User[$runAsUser],],
+    }
 	}
 }

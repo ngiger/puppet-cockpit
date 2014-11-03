@@ -10,12 +10,12 @@
 #
 # === Variables
 # useMock = default true. generates mockscripts. This is safe
-#         as we the app will usually to heavy stuff like rebooting the 
+#         as we the app will usually to heavy stuff like rebooting the
 #         server
 # ensure  = present or absent. If absent will purge the repository, too
 # vcsRoot = where to install the checkout copy of the elexis-cockpit app
 # initFile = the init script
-# rubyVersion = The ruby version to install. Must match the Gemfile 
+# rubyVersion = The ruby version to install. Must match the Gemfile
 #
 # === Examples
 #
@@ -33,19 +33,23 @@
 class cockpit::service(
   $ensure  = true,
 
-) inherits cockpit
-{
- 
+) {
+  if !defined(Class['cockpit']) {class{'cockpit':  ensure => true } }
   $cockpit_runner = "${cockpit::local_bin}/start_elexis_cockpit.sh"
   $cockpit_name     = "elexis_cockpit"
-#  $cockpit_run      = "/etc/service/$cockpit_name/run"
   $cockpit_run      = "/etc/$cockpit_name/run"
+
   if ( $cockpit::useMock ) {
     $export_mock = "export COCKPIT_CONFIG=mock_config.yaml"
   }
 
   if ($ensure != absent) {
+    $vcsRoot = $::cockpit::vcsRoot
+
     file{"/etc/$cockpit_name": ensure => directory}
+    package{'bundler': ensure => present,
+      provider => gem,
+    }
     file{"$vcsRoot/start.sh":
       content => "#!/bin/bash -v
 cd  $vcsRoot
@@ -59,10 +63,11 @@ ruby elexis-cockpit.rb 2>&1
       owner =>  $cockpit::runAsUser,
       group =>  $cockpit::runAsUser,
       mode    => 0755,
+      require => [ Package['bundler']],
       # require => File["$vcsRoot"],
     }
-    
-    $build_deps = ['ruby-bcrypt', 'ruby-redcloth', 'ruby-sqlite3']
+
+    $build_deps = ['ruby-redcloth', 'ruby-sqlite3']
     exec { 'bundle_trust_cockpit':
       command => "echo bundle install --gemfile $vcsRoot/Gemfile &> $vcsRoot/install.log",
       creates => "$vcsRoot/install.log",
@@ -73,6 +78,7 @@ ruby elexis-cockpit.rb 2>&1
                   Apt::Builddep[$build_deps],
                  ],
     }
+
     exec { 'gen_mockconfig':
       command => "bundle exec rake mock_scripts 2>&1| tee mock_scripts.log",
       creates => "$vcsRoot/mock_scripts.log",
@@ -83,7 +89,7 @@ ruby elexis-cockpit.rb 2>&1
     }
     class { 'apt':  always_apt_update    => true,}
     apt::builddep{$build_deps: }
-    
+
     file{"$cockpit_run":
      content => "#!/bin/bash
 sudo su -l $cockpit::runAsUser $vcsRoot/start.sh 2>&1 | tee /var/log/$cockpit::runAsUser.log

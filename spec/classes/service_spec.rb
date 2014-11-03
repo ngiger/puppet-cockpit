@@ -11,15 +11,6 @@ if false
     }
   end
 
-  context 'when running with ensure present' do
-    let(:params) { { :ensure => 'present',}}
-    it {
-      should compile
-      should compile.with_all_deps
-      should create_class('cockpit')
-    }
-  end
-end
   context 'when running with ensure absent' do
     let(:params) { { :ensure => 'absent' } }
     it {
@@ -28,8 +19,17 @@ end
       should create_class('cockpit')
     }
     it {
-      should create_vcsrepo('/opt/cockpit/checkout')
-      should create_xxxvcsrepo('/opt/cockpit/checkout')
+      should_not create_vcsrepo('/opt/cockpit/checkout')
     }
   end
+end
+  context 'when running with ensure present' do
+    let(:params) { { :ensure => 'present',}}
+    it {
+      should compile
+      should compile.with_all_deps
+      should create_class('cockpit')
+    }
+  end
+
 end

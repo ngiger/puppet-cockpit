@@ -21,7 +21,7 @@ describe 'cockpit' do
       should create_class('cockpit')
       should contain_file('/etc/init.d/cockpit').with_content(/sudo -iHu cockpit --  cd\s+\/opt\/cockpit\/checkout bundle install && COCKPIT_CONFIG=mock_config.yaml .\/elexis-cockpit.rb &> \/var\/log\/elexis-cockpit.log /)
       should contain_vcsrepo('/opt/cockpit/checkout')
-      should contain_group('cockpit')
+      should_not contain_group('cockpit')
       should contain_user('cockpit').only_with( { :ensure => 'present', :name => 'cockpit'} )
     }
   end
@@ -32,8 +32,13 @@ describe 'cockpit' do
       should compile
       should compile.with_all_deps
       should create_class('cockpit')
-      should_not contain_group('cockpit')
-      should_not contain_user('cockpit')
     }
+    it {
+      should contain_user('cockpit').only_with( { :ensure => 'absent', :name => 'cockpit'} )
+      }
+    it {
+      should_not contain_group('cockpit')
+      }
+
   end
 end
