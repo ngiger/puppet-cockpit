@@ -17,19 +17,8 @@ WheezyFacts = { :osfamily => 'Debian',
               }
 Managed_tce_regexp = /managed by puppet x2go\/tce.pp/
 
-# TODO: Hope this bugs gets squashed wit a new version of rspec
-# needed if  bundle exec rspec spec/classes/ fails, but each spec/*.spec is okay when run alone
-# see https://github.com/rodjek/rspec-puppet/issues/215
-module RSpec::Puppet
-  module Support
-    def build_catalog(*args)
-      @@cache[args] = self.build_catalog_without_cache(*args)
-    end
-  end
-end if false
-
 RSpec.configure do |c|
   c.module_path = File.join(fixture_path, 'modules')
   c.manifest_dir = File.join(fixture_path, 'manifests')
 end
-at_exit { RSpec::Puppet::Coverage.report! }
+# at_exit { RSpec::Puppet::Coverage.report! }

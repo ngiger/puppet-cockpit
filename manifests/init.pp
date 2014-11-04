@@ -50,14 +50,6 @@ class cockpit(
       user { "$runAsUser":  ensure => $ensure, }
     }
 
-    file  { $initFile:
-      content => template('cockpit/cockpit.init.erb'),
-      ensure => $pkg_ensure,
-      owner => 'root',
-      group => 'root',
-      mode  => 0754,
-    }
-
     vcsrepo {  "$vcsRoot":
         ensure => $pkg_ensure,
         provider => 'git',
