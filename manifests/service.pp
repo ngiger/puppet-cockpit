@@ -44,13 +44,6 @@ class cockpit::service(
   if ( $cockpit::useMock ) {
     $export_mock = "export COCKPIT_CONFIG=mock_config.yaml"
   }
-# mkdir /etc/systemd/system
-# cp cockpit.service /etc/systemd/system/
-# apt-get install systemd
-#  apt-get install systemd-sysv
-# systemctl daemon-reload
-# systemctl restart cockpit
-# rm /etc/init.d/dockpit
   if ($ensure != absent) {
     $vcsRoot = $::cockpit::vcsRoot
     package{'bundler': ensure => present,
