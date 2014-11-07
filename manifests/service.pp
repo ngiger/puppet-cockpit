@@ -36,7 +36,6 @@ class cockpit::service(
 
 ) {
   if !defined(Class['cockpit']) {class{'cockpit':  ensure => true } }
-  $cockpit_runner = "${cockpit::local_bin}/start_elexis_cockpit.sh"
   $cockpit_name     = "elexis_cockpit"
   $managed_note     = "managed by puppet ngiger/cockpit/service.pp"
 
