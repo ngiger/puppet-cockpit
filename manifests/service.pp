@@ -53,7 +53,6 @@ class cockpit::service(
     if ($use_systemd) {
       $systemd_packages = [ 'systemd', 'systemd-sysv',]
       ensure_packages($systemd_packages)
-      notify{"cockpit::service bundler": }
       file{'/etc/init.d/cockpit': ensure => absent} # avoid collision with System-V init
       file{"/etc/$cockpit_name":  ensure => absent, recurse => true, force => true}
       file{'/etc/systemd/system/cockpit.service':
@@ -80,6 +79,11 @@ WantedBy = multi.user.target
         command => '/bin/systemctl daemon-reload && /bin/systemctl restart cockpit',
         subscribe => File['/etc/systemd/system/cockpit.service'],
       }
+      # service{'cockpit':
+      #   ensure => running,
+      #   provider => systemctl,
+      #   require => File['/etc/systemd/system/cockpit.service'],
+      # }
     } else { # system-v init
       $initFile = '/etc/init.d/cockpit'
       file  { $initFile:
@@ -94,6 +98,12 @@ WantedBy = multi.user.target
         command => '/usr/sbin/update-rc.d cockpit defaults',
         subscribe => File[$initFile],
         require   => File[$initFile],
+      }
+      service{'cockpit':
+        ensure => running,
+        provider => debian,
+        manifest => $initFile,
+        require => File[$initFile],
       }
     }
 
@@ -139,11 +149,6 @@ bundle exec ruby elexis-cockpit.rb 2>&1
       path => '/usr/local/bin:/usr/bin:/bin',
       require =>  [ Vcsrepo[$vcsRoot],
                     Exec['bundle_trust_cockpit'], ],
-    }
-    service{'cockpit':
-      ensure => running,
-      provider => debian,
-      manifest => $initFile,
     }
     require apt
     apt::builddep{$build_deps: }
