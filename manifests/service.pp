@@ -103,7 +103,8 @@ WantedBy = multi.user.target
         ensure => running,
         provider => debian,
         manifest => $initFile,
-        require => File[$initFile],
+        status   => '/bin/ps -ef | /bin/grep "ruby cockpit"',
+        require => [Exec['gen_mockconfig', 'bundle_trust_cockpit'], File[$initFile, '/etc/sudoers.d/cockpit']],
       }
     }
 
@@ -131,23 +132,26 @@ bundle exec ruby elexis-cockpit.rb 2>&1
     }
 
     $build_deps = ['ruby-redcloth', 'ruby-sqlite3', 'ruby-dev', 'libxml2-dev', 'libxslt1-dev']
+    ensure_packages[$build_deps]
     exec { 'bundle_trust_cockpit':
-      command => "echo bundle install --gemfile $vcsRoot/Gemfile &> $vcsRoot/install.log",
-      creates => "$vcsRoot/install.log",
+      command => "bundle install --gemfile $vcsRoot/Gemfile && touch $vcsRoot/bundle_trust_cockpit.done",
+      creates => "$vcsRoot/bundle_trust_cockpit.done",
       cwd => "/usr/bin",
       path => '/usr/local/bin:/usr/bin:/bin',
       require => [ # Rbenv::Build['2.1.2'],
                   Vcsrepo[$vcsRoot],
+                  Package['bundler', $build_deps],
                   Apt::Builddep[$build_deps],
                  ],
     }
 
     exec { 'gen_mockconfig':
-      command => "bundle exec rake mock_scripts 2>&1| tee mock_scripts.log",
-      creates => "$vcsRoot/mock_scripts.log",
+      command => "bundle exec rake mock_scripts && touch $vcsRoot/gen_mockconfig.done",
+      creates => "$vcsRoot/gen_mockconfig.done",
       cwd => "$vcsRoot",
       path => '/usr/local/bin:/usr/bin:/bin',
       require =>  [ Vcsrepo[$vcsRoot],
+                    Package['bundler', $build_deps],
                     Exec['bundle_trust_cockpit'], ],
     }
     require apt
