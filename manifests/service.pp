@@ -31,28 +31,29 @@
 # Copyright 2013 Niklaus Giger <niklaus.giger@member.fsf.org>
 #
 class cockpit::service(
-  $ensure  = true,
+  $ensure  = false,
   $use_systemd = true
 
 ) {
   if !defined(Class['cockpit']) {class{'cockpit':  ensure => true } }
   $cockpit_runner = "${cockpit::local_bin}/start_elexis_cockpit.sh"
   $cockpit_name     = "elexis_cockpit"
-  $cockpit_run      = "/etc/$cockpit_name/run"
   $managed_note     = "managed by puppet ngiger/cockpit/service.pp"
 
   if ( $cockpit::useMock ) {
     $export_mock = "export COCKPIT_CONFIG=mock_config.yaml"
   }
-  if ($ensure != absent) {
+  if ($ensure) {
     $vcsRoot = $::cockpit::vcsRoot
+    $runAsUser = $cockpit::runAsUser
     package{'bundler': ensure => present,
       provider => gem,
     }
 
     if ($use_systemd) {
-      $systemd_packages = [ 'systemd-sysv', 'systemd' ]
+      $systemd_packages = [ 'systemd', 'systemd-sysv',]
       ensure_packages($systemd_packages)
+      notify{"cockpit::service bundler": }
       file{'/etc/init.d/cockpit': ensure => absent} # avoid collision with System-V init
       file{"/etc/$cockpit_name":  ensure => absent, recurse => true, force => true}
       file{'/etc/systemd/system/cockpit.service':
@@ -63,8 +64,8 @@ After = NetworkManager-wait-online.service network.target syslog.target
 
 [Service]
 ExecStart = $vcsRoot/start.sh
-User=$cockpit::runAsUser
-Group=$cockpit::runAsUser
+User=$runAsUser
+Group=$runAsUser
 PIDFile = /var/run/cockpit.pid
 Restart = on-abort
 StartLimitInterval = 60
@@ -80,6 +81,7 @@ WantedBy = multi.user.target
         subscribe => File['/etc/systemd/system/cockpit.service'],
       }
     } else { # system-v init
+      $initFile = '/etc/init.d/cockpit'
       file  { $initFile:
         content => template('cockpit/cockpit.init.erb'),
         ensure => $pkg_ensure,
@@ -88,21 +90,18 @@ WantedBy = multi.user.target
         mode  => 0754,
       }
 
-      file{"$cockpit_run":
-      content => "#!/bin/bash
-sudo su -l $cockpit::runAsUser $vcsRoot/start.sh 2>&1 | tee /var/log/$cockpit::runAsUser.log
+      exec{'update-rc_cockpit':
+        command => '/usr/sbin/update-rc.d cockpit defaults',
+        subscribe => File[$initFile],
+        require   => File[$initFile],
+      }
+    }
+
+    file{'/etc/sudoers.d/cockpit':
+      ensure => present,
+      content => "# $managed_note
+$runAsUser ALL=NOPASSWD:/sbin/shutdown
 ",
-        owner =>  $cockpit::runAsUser,
-        group =>  $cockpit::runAsUser,
-        mode    => 0755,
-        require => File["/etc/$cockpit_name", "$vcsRoot/start.sh"],
-      }
-      daemontools::service {'cockpit':
-        ensure  => running,
-        command => "$vcsRoot/start.sh",
-        logpath => '/var/log/$cockpit',
-      }
-      file{"/etc/$cockpit_name": ensure => directory}
     }
 
     file{"$vcsRoot/start.sh":
@@ -111,17 +110,17 @@ cd  $vcsRoot
 echo \$PATH
 ruby -v
 $export_mock
-bundle install
+bundle install --deployment
 bundle exec ruby elexis-cockpit.rb 2>&1
 ",
-      owner =>  $cockpit::runAsUser,
-      group =>  $cockpit::runAsUser,
+      owner =>  $runAsUser,
+      group =>  $runAsUser,
       mode    => 0755,
       require => [ Package['bundler']],
       # require => File["$vcsRoot"],
     }
 
-    $build_deps = ['ruby-redcloth', 'ruby-sqlite3']
+    $build_deps = ['ruby-redcloth', 'ruby-sqlite3', 'ruby-dev', 'libxml2-dev', 'libxslt1-dev']
     exec { 'bundle_trust_cockpit':
       command => "echo bundle install --gemfile $vcsRoot/Gemfile &> $vcsRoot/install.log",
       creates => "$vcsRoot/install.log",
@@ -141,7 +140,12 @@ bundle exec ruby elexis-cockpit.rb 2>&1
       require =>  [ Vcsrepo[$vcsRoot],
                     Exec['bundle_trust_cockpit'], ],
     }
-    class { 'apt':  always_apt_update    => true,}
+    service{'cockpit':
+      ensure => running,
+      provider => debian,
+      manifest => $initFile,
+    }
+    require apt
     apt::builddep{$build_deps: }
   }
 }

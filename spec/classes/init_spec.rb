@@ -21,7 +21,7 @@ describe 'cockpit' do
       should create_class('cockpit')
       should contain_vcsrepo('/opt/cockpit/checkout')
       should_not contain_group('cockpit')
-      should contain_user('cockpit').only_with( { :ensure => 'present', :name => 'cockpit'} )
+      should contain_user('cockpit').only_with( { :ensure => 'present', :shell => '/bin/bash', :name => 'cockpit', :managehome => true} )
     }
   end
 

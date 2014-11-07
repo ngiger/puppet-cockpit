@@ -41,7 +41,7 @@ class cockpit(
   if ($ensure) {
     class { "cockpit::setup": ensure => $ensure, install_dir => "/home/$runAsUser"}
     if ($ensure != absent ) {
-      user { "$runAsUser":  ensure => present, }
+      user { "$runAsUser":  ensure => present, shell => '/bin/bash', managehome => true }
       $pkg_ensure = present
     }
     else {

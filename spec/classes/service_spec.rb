@@ -38,7 +38,7 @@ describe 'cockpit::service' do
       should contain_file('/etc/elexis_cockpit').with({:ensure => 'absent', :recurse => true})
       should contain_file('/etc/init.d/cockpit').with({:ensure => 'absent'})
       should contain_file('/opt/cockpit/checkout/start.sh').with_content(/cd\s+\/opt\/cockpit\/checkout/)
-      should contain_file('/opt/cockpit/checkout/start.sh').with_content(/bundle\s+install\nbundle\s+exec\s+ruby\s+elexis-cockpit.rb/)
+      should contain_file('/opt/cockpit/checkout/start.sh').with_content(/bundle\s+install\s+--deployment\s*\nbundle\s+exec\s+ruby\s+elexis-cockpit.rb/)
       should contain_file('/etc/systemd/system/cockpit.service').with_content(/^\[Service\]
 ExecStart\s*=\s*\/opt\/cockpit\/checkout\/start.sh
 User\s*=\s*cockpit

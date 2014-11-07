@@ -3,21 +3,24 @@
 # Provides:          cockpit
 # Required-Start:    $local_fs  $remote_fs $network
 # Required-Stop:
-# Default-Start:     S
-# Default-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
 # Short-Description: Elexis-Cockpit simple Sinatra Web page for some administration work
 ### END INIT INFO
 #
 # Start the elexis-cockpit
 
+if [ ! -d <%=  @vcsRoot %> ]
+then
+  echo "Could not find <%=  @vcsRoot %>"
+  exit 2
+fi
 case "$1" in
-  start) ;;
+  start)
+    <%=  @useMock ? 'export COCKPIT_CONFIG=mock_config.yaml' : '' %>
+    # redirect stdout and stderr into a log file
+    sudo -u <%= @runAsUser %> <%=  @vcsRoot %>/start.sh &> /var/log/elexis-cockpit.log &
+  ;;
   stop|restart|force-reload) exit 0 ;;
   *) echo "Usage: $0 {start|stop|restart|force-reload}" >&2; exit 1 ;;
 esac
-
-if [ -d <%=  @vcsRoot %> ]
-then	
-  # redirect stdout and stderr into a log file
-  sudo -iHu <%= @runAsUser %> --  cd  <%=  @vcsRoot %> bundle install && <%=  @useMock ? 'COCKPIT_CONFIG=mock_config.yaml' : '' %> ./elexis-cockpit.rb &> /var/log/elexis-cockpit.log &
-fi
