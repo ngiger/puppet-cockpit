@@ -87,7 +87,6 @@ WantedBy = multi.user.target
       $initFile = '/etc/init.d/cockpit'
       file  { $initFile:
         content => template('cockpit/cockpit.init.erb'),
-        ensure => $pkg_ensure,
         owner => 'root',
         group => 'root',
         mode  => 0754,
